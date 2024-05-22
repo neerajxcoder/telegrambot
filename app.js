@@ -1,10 +1,13 @@
 const { Telegraf } = require('telegraf');
 const { MongoClient } = require('mongodb');
+
 const uri = 'mongodb://localhost:27017';
 const dbName = 'config';
 const collectionName = 'messages';
-const bot = new Telegraf("7135052956:AAFMeOFx7otirEzoOq1wIrW4TQsiB_k6-lU");
+const bot = new Telegraf("");
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+bot.start((ctx) => ctx.reply('bhn ka lo'))
+
 client.connect()
   .then(() => {
     console.log('Connected to MongoDB');
@@ -20,15 +23,15 @@ client.connect()
       await collection.insertOne(message);
       const messages = await collection.find({}).toArray();
       const msg = messages.map(item => item.text);
-      const chatId = ctx.message.chat.id;
-      const messag = ctx.message; 
+      const chatId = await ctx.message.chat.id;
+      const messag =  await ctx.message; 
       if (messag.reply_to_message) {
         return;
     }
       const randomIndex = Math.floor(Math.random() * msg.length);
       const replyMessage = msg[randomIndex]; 
-      ctx.telegram.sendMessage(chatId, replyMessage, {   
-        reply_to_message_id: messag.message_id,
+      await ctx.telegram.sendMessage(chatId, replyMessage, {   
+          reply_to_message_id: messag.message_id,
         parse_mode: 'HTML',
       })
     });

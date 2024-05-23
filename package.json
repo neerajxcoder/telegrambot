@@ -1,8 +1,15 @@
 {
+  "name": "telegram-music-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bot.js",
+  "type": "module",
+  "scripts": {},
   "dependencies": {
-    "mongoose": "^8.4.0",
+    "mongodb": "^6.6.2",
+    "node-fetch": "^3.0.0",
     "nodemon": "^3.1.0",
-    "punycode": "^2.3.1",
-    "telegraf": "^4.16.3"
+    "telegraf": "^4.16.3",
+    "ytdl-core": "^4.9.3"
   }
 }

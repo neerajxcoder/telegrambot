@@ -21,65 +21,65 @@ bot.start((ctx) => {
 
 
 
-// bot.command('tagall', async (ctx) => {
-//   const chatId = ctx.chat.id;
+bot.command('tagall', async (ctx) => {
+  const chatId = ctx.chat.id;
 
-//   // Get the custom message
-//   const customMessage = ctx.message.text.split(' ').slice(1).join(' ');
-//   if (!customMessage) {
-//       ctx.reply('Please provide a message to send.');
-//       return;
-//   }
+  // Get the custom message
+  const customMessage = ctx.message.text.split(' ').slice(1).join(' ');
+  if (!customMessage) {
+      ctx.reply('Please provide a message to send.');
+      return;
+  }
 
-//   try {
-//       // Get chat members
-//       const members = await getChatMembers(chatId);
+  try {
+      // Get chat members
+      const members = await getChatMembers(chatId);
 
-//       if (members.length === 0) {
-//           ctx.reply('No members found.');
-//           return;
-//       }
+      if (members.length === 0) {
+          ctx.reply('No members found.');
+          return;
+      }
 
-//       // Escape MarkdownV2 characters
-//       const escapeMarkdown = (text) => {
-//           return text.replace(/[_*[\]()~>#+\-=|{}.!]/g, '\\$&');
-//       };
+      // Escape MarkdownV2 characters
+      const escapeMarkdown = (text) => {
+          return text.replace(/[_*[\]()~>#+\-=|{}.!]/g, '\\$&');
+      };
 
-//       // Send message to each member one by one with 1 second delay
-//       for (let i = 0; i < members.length; i++) {
-//           const member = members[i];
-//           let tag;
-//           if (member.username) {
-//               tag = `@${escapeMarkdown(member.username)}`;
-//           } else {
-//               const fullName = `${escapeMarkdown(member.first_name)}${member.last_name ? ' ' + escapeMarkdown(member.last_name) : ''}`;
-//               tag = `[${fullName}](tg://user?id=${member.id})`;
-//           }
+      // Send message to each member one by one with 1 second delay
+      for (let i = 0; i < members.length; i++) {
+          const member = members[i];
+          let tag;
+          if (member.username) {
+              tag = `@${escapeMarkdown(member.username)}`;
+          } else {
+              const fullName = `${escapeMarkdown(member.first_name)}${member.last_name ? ' ' + escapeMarkdown(member.last_name) : ''}`;
+              tag = `[${fullName}](tg://user?id=${member.id})`;
+          }
 
-//           const messageToSend =`${tag} ${escapeMarkdown(customMessage)}`;
+          const messageToSend =`${tag} ${escapeMarkdown(customMessage)}`;
 
-//           // Delay for 1 second before sending the next message
-//           await new Promise(resolve => setTimeout(resolve, 500));
-//           ctx.replyWithMarkdownV2(messageToSend);
-//       }
-//   } catch (error) {
-//       console.error('Error getting chat members or sending message:', error);
-//       ctx.reply('An error occurred while trying to tag all members.');
-//   }
-// });
+          // Delay for 1 second before sending the next message
+          await new Promise(resolve => setTimeout(resolve, 500));
+          ctx.replyWithMarkdownV2(messageToSend);
+      }
+  } catch (error) {
+      console.error('Error getting chat members or sending message:', error);
+      ctx.reply('An error occurred while trying to tag all members.');
+  }
+});
 
-// async function getChatMembers(chatId) {
-//   const url = `https://api.telegram.org/bot${'7135052956:AAFMeOFx7otirEzoOq1wIrW4TQsiB_k6-lU'}/getChatAdministrators?chat_id=${chatId}`;
-//   const response = await fetch(url);
-//   const data = await response.json();
+async function getChatMembers(chatId) {
+  const url = `https://api.telegram.org/bot${'7135052956:AAFMeOFx7otirEzoOq1wIrW4TQsiB_k6-lU'}/getChatAdministrators?chat_id=${chatId}`;
+  const response = await fetch(url);
+  const data = await response.json();
 
-//   if (data.ok) {
-//       return data.result.map(admin => admin.user);
-//   } else {
-//       console.error('Failed to fetch chat members:', data);
-//       return [];
-//   }
-// }
+  if (data.ok) {
+      return data.result.map(admin => admin.user);
+  } else {
+      console.error('Failed to fetch chat members:', data);
+      return [];
+  }
+}
 
 
 

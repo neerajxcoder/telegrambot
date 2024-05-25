@@ -24,7 +24,6 @@ bot.start((ctx) => {
 bot.command('tagall', async (ctx) => {
   const chatId = ctx.chat.id;
 
-  // Get the custom message
   const customMessage = ctx.message.text.split(' ').slice(1).join(' ');
   if (!customMessage) {
       ctx.reply('Please provide a message to send.');
@@ -32,7 +31,7 @@ bot.command('tagall', async (ctx) => {
   }
 
   try {
-      // Get chat members
+    rs
       const members = await getChatMembers(chatId);
 
       if (members.length === 0) {
@@ -40,12 +39,12 @@ bot.command('tagall', async (ctx) => {
           return;
       }
 
-      // Escape MarkdownV2 characters
+      
       const escapeMarkdown = (text) => {
           return text.replace(/[_*[\]()~>#+\-=|{}.!]/g, '\\$&');
       };
 
-      // Send message to each member one by one with 1 second delay
+      
       for (let i = 0; i < members.length; i++) {
           const member = members[i];
           let tag;
@@ -170,30 +169,14 @@ client.connect()
   
 
 
-    if (cluster.isMaster) {
-      // Master process
-      const numCPUs = os.cpus().length;
+    
   
-      console.log(`Master ${process.pid} is running`);
-  
-      // Fork workers
-      for (let i = 0; i < numCPUs; i++) {
-          cluster.fork();
-      }
-  
-      cluster.on('exit', (worker, code, signal) => {
-          console.log(`Worker ${worker.process.pid} died`);
-          // Optionally, you can respawn a worker here
-          cluster.fork();
-      });
-  }
-  else {
-    // Worker processes
-    console.log(`Worker ${process.pid} started`);
+    
+
     bot.launch().then(() => {
       console.log('Bot is up and running');
   }).catch((err) => {
       console.error('Failed to launch the bot:', err);
   });
-}
+
   })

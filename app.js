@@ -1,15 +1,15 @@
 import { Telegraf, Markup } from 'telegraf'
 import fetch from 'node-fetch';
 import { message } from 'telegraf/filters'
-
-
+import cluster from 'cluster';
+import os from 'os'
 import { MongoClient } from 'mongodb';
 
 const uri = 'mongodb://localhost:27017';
 const dbName = 'config';
 const collec='sticker'
 const collectionName = 'messages';
-const bot = new Telegraf("7135052956:AAFMeOFx7otirEzoOq1wIrW4TQsiB_k6-lU");
+const bot = new Telegraf("7135052956:AAHxxzralRfXsmyEHf7VsmzxpKyKFLc52pY");
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 bot.start((ctx) => {
   ctx.reply('Welcome! Click a button:', Markup.inlineKeyboard([
@@ -58,7 +58,7 @@ bot.command('tagall', async (ctx) => {
 
           const messageToSend =`${tag} ${escapeMarkdown(customMessage)}`;
 
-          // Delay for 1 second before sending the next message
+         
           await new Promise(resolve => setTimeout(resolve, 500));
           ctx.replyWithMarkdownV2(messageToSend);
       }
@@ -69,7 +69,7 @@ bot.command('tagall', async (ctx) => {
 });
 
 async function getChatMembers(chatId) {
-  const url = `https://api.telegram.org/bot${'7135052956:AAFMeOFx7otirEzoOq1wIrW4TQsiB_k6-lU'}/getChatAdministrators?chat_id=${chatId}`;
+  const url = `https://api.telegram.org/bot${'7135052956:AAHxxzralRfXsmyEHf7VsmzxpKyKFLc52pY'}/getChatAdministrators?chat_id=${chatId}`;
   const response = await fetch(url);
   const data = await response.json();
 
@@ -80,13 +80,6 @@ async function getChatMembers(chatId) {
       return [];
   }
 }
-
-
-
-
-
-
-
 
 client.connect()
   .then(() => {
@@ -174,9 +167,33 @@ client.connect()
         parse_mode: 'HTML',
       })
     });
-     bot.action('like', (ctx) => {
-      ctx.reply('You liked the message');
-    });
-    bot.launch();
+  
+
+
+    if (cluster.isMaster) {
+      // Master process
+      const numCPUs = os.cpus().length;
+  
+      console.log(`Master ${process.pid} is running`);
+  
+      // Fork workers
+      for (let i = 0; i < numCPUs; i++) {
+          cluster.fork();
+      }
+  
+      cluster.on('exit', (worker, code, signal) => {
+          console.log(`Worker ${worker.process.pid} died`);
+          // Optionally, you can respawn a worker here
+          cluster.fork();
+      });
+  }
+  else {
+    // Worker processes
+    console.log(`Worker ${process.pid} started`);
+    bot.launch().then(() => {
+      console.log('Bot is up and running');
+  }).catch((err) => {
+      console.error('Failed to launch the bot:', err);
+  });
+}
   })
-  .catch(err => console.error('Error connecting to MongoDB:', err));

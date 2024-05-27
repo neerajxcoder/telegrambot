@@ -9,7 +9,7 @@ const uri = 'mongodb://localhost:27017';
 const dbName = 'config';
 const collec='sticker'
 const collectionName = 'messages';
- const bot = new Telegraf("7135052956:AAEEj6JEUnHNzSFWXQ1O7NxeBHOf7EILZ40");
+ const bot = new Telegraf("");
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 bot.start((ctx) => {
   ctx.reply('Welcome! Click a button:', Markup.inlineKeyboard([

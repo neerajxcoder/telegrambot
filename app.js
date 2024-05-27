@@ -9,7 +9,7 @@ const uri = 'mongodb://localhost:27017';
 const dbName = 'config';
 const collec='sticker'
 const collectionName = 'messages';
-const bot = new Telegraf("7135052956:AAHxxzralRfXsmyEHf7VsmzxpKyKFLc52pY");
+ const bot = new Telegraf("7135052956:AAEEj6JEUnHNzSFWXQ1O7NxeBHOf7EILZ40");
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 bot.start((ctx) => {
   ctx.reply('Welcome! Click a button:', Markup.inlineKeyboard([
@@ -18,49 +18,57 @@ bot.start((ctx) => {
   ]));
 });
 
-
-
-
-bot.command('tagall', async (ctx) => {
-  const chatId = ctx.chat.id;
-
-  const customMessage = ctx.message.text.split(' ').slice(1).join(' ');
-  if (!customMessage) {
-      ctx.reply('Please provide a message to send.');
-      return;
-  }
-
+bot.on('left_chat_member', async (ctx) => {
   try {
-    rs
-      const members = await getChatMembers(chatId);
+    const leftMember = ctx.message.left_chat_member;
 
-      if (members.length === 0) {
+    const escapeMarkdown = (text) => {
+      return text.replace(/[_*[\]()~>#+\-=|{}.!\\]/g, '\\$&').replace(/`/g, '\\`').replace(/\./g, '\\.');
+    };
+
+    let tag;
+    if (leftMember.username) {
+      tag = `@${escapeMarkdown(leftMember.username)}`;
+    } else {
+      const fullName = `${escapeMarkdown(leftMember.first_name)}${leftMember.last_name ? ' ' + escapeMarkdown(leftMember.last_name) : ''}`;
+      tag = `[${fullName}](tg://user?id=${leftMember.id})`;
+    }
+
+    const chatId = ctx.chat.id;
+    const messageToSend = `${tag} has left the group\\. Goodbye\\!`;
+    await ctx.telegram.sendMessage(chatId, messageToSend, { parse_mode: 'MarkdownV2' });
+  } catch (error) {
+    console.error('Error sending message:', error);
+  }
+});
+
+bot.command('admin', async (ctx) => {
+  const chatId = ctx.chat.id;
+  try {
+  
+      const member = await getChatMembers(chatId);
+
+      if (member.length === 0) {
           ctx.reply('No members found.');
           return;
       }
-
-      
+   
       const escapeMarkdown = (text) => {
           return text.replace(/[_*[\]()~>#+\-=|{}.!]/g, '\\$&');
       };
 
       
-      for (let i = 0; i < members.length; i++) {
-          const member = members[i];
-          let tag;
-          if (member.username) {
-              tag = `@${escapeMarkdown(member.username)}`;
-          } else {
-              const fullName = `${escapeMarkdown(member.first_name)}${member.last_name ? ' ' + escapeMarkdown(member.last_name) : ''}`;
-              tag = `[${fullName}](tg://user?id=${member.id})`;
-          }
-
-          const messageToSend =`${tag} ${escapeMarkdown(customMessage)}`;
-
-         
-          await new Promise(resolve => setTimeout(resolve, 500));
-          ctx.replyWithMarkdownV2(messageToSend);
+    const tags = member.map(admin => {
+      if (admin.username) {
+        return `@${escapeMarkdown(admin.username)}`;
+      } else {
+        const fullName = `${escapeMarkdown(admin.first_name)}${admin.last_name ? ' ' + escapeMarkdown(admin.last_name) : ''}`;
+        return `[${fullName}](tg://user?id=${admin.id})`;
       }
+    }).join(' \n');
+
+    ctx.replyWithMarkdownV2(tags);
+   
   } catch (error) {
       console.error('Error getting chat members or sending message:', error);
       ctx.reply('An error occurred while trying to tag all members.');
@@ -68,7 +76,7 @@ bot.command('tagall', async (ctx) => {
 });
 
 async function getChatMembers(chatId) {
-  const url = `https://api.telegram.org/bot${'7135052956:AAHxxzralRfXsmyEHf7VsmzxpKyKFLc52pY'}/getChatAdministrators?chat_id=${chatId}`;
+  const url = `https://api.telegram.org/bot${'7135052956:AAEEj6JEUnHNzSFWXQ1O7NxeBHOf7EILZ40'}/getChatAdministrators?chat_id=${chatId}`;
   const response = await fetch(url);
   const data = await response.json();
 
@@ -83,26 +91,27 @@ async function getChatMembers(chatId) {
 client.connect()
   .then(() => {
     console.log('Connected to MongoDB');
-    
-
     bot.on('sticker', async (ctx) => {
       if (ctx.chat.type === 'private') {
         ctx.reply('please enter cammand')
          return
        }
-      
-      
+       await ctx.telegram.sendChatAction(ctx.chat.id, 'typing');
+  const sticker = ctx.message.sticker;
+   
       const message = {
         chatId: ctx.chat.id,
         messageId: ctx.message.message_id,
         sticker: ctx.message.sticker,
         date: new Date(ctx.message.date * 1000)
       };
-
      
       const db = client.db(dbName);
       const collection = db.collection(collec);
-      await collection.insertOne(message);
+      const existingMessage = await collection.findOne({ 'sticker.file_unique_id':sticker.file_unique_id });
+ if(!existingMessage) { 
+        await collection.insertOne(message);
+      }
       const messages = await collection.find({}).toArray();
       const msg = messages.map(item => item.sticker).filter(Boolean); 
       const chatId = ctx.message.chat.id;
@@ -117,17 +126,11 @@ client.connect()
       const randomIndex = Math.floor(Math.random() * msg.length);
      
       const replySticker = msg[randomIndex]; 
-     
-     
+ 
       await ctx.telegram.sendSticker(chatId, replySticker.file_id, { 
         reply_to_message_id: messag.message_id
         })
     });
-
-
-
-
-
 
     bot.on('message', async (ctx) => { 
       if (ctx.chat.type === 'private') {
@@ -140,6 +143,7 @@ client.connect()
       if (messageText==='null,`undifine') {
         return;
       }
+      await ctx.telegram.sendChatAction(ctx.chat.id, 'typing');
       const message = {
         chatId: ctx.chat.id,
         messageId: ctx.message.message_id,
@@ -148,7 +152,11 @@ client.connect()
       };
       const db = client.db(dbName);
       const collection = db.collection(collectionName);
-      await collection.insertOne(message);
+      const copy = await collection.findOne({text:messageText});
+      if(!copy){
+        await collection.insertOne(message);
+      }
+
       const messages = await collection.find({}).toArray();
       const msg =await messages.map(item => item.text);
       const chatId = await ctx.message.chat.id;
@@ -168,7 +176,6 @@ client.connect()
     });
   
 
-
     
   
     
@@ -179,4 +186,4 @@ client.connect()
       console.error('Failed to launch the bot:', err);
   });
 
-  })
+   })
